@@ -4,8 +4,8 @@ import pandas as pd, requests
 baseurl = "https://api.keyedinprojects.co.uk/V3/api/"
 endpoint = "report"
 
-usr = "abdul.wasay@thameswater.co.uk"
-pwd = "FQ03tbvc!"
+usr = ""
+pwd = ""
 report = "771"
 
 #endpoint is report, query parameter is key
