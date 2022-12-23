@@ -1,0 +1,63 @@
+from email.policy import default
+import xlwings as xw
+import pandas as pd
+from datetime import date
+from tkinter import filedialog as fd
+
+
+
+'''creating data
+Note that xls and xlsx works with keyedin upload'''
+
+xlsm_ContractFile = fd.askopenfilename(filetypes=[('Macro files','*.xlsm')],title='Contract file')
+
+#my workbook here
+file = pd.read_excel(xlsm_ContractFile,sheet_name="Input",skiprows=2,header=None)
+
+file = file.iloc[:,:]
+file.dropna(axis=1,how='all',inplace=True)
+file = file.transpose()
+
+new_header = file.iloc[0]
+file = file[1:]
+file.columns = new_header
+
+# excel.to_excel("RiverRest.xlsx",index_label=False)
+
+date_cols = ['Achilles Expiry Date (Date)','End Of Alcatel Standstill Period (Date)']
+file[date_cols] = file[date_cols].astype('datetime64').apply(lambda x:x.dt.strftime('%d/%m/%Y'))
+
+managerName = file.iat[0,file.columns.get_loc("Contracts Manager")]
+
+file = file.rename(columns=file.iloc[0]).drop(file.index[0]) #index 0 remove duplicate header and index 0 so that we only have data!
+
+
+
+
+'''table within the template starts from b10 cell
+startcol, startrow for adjustments
+
+additional technique (gives blank column header) but not quite as it still leaves header row
+    excel.columns = [''] * len(excel.columns)
+    Note: cw last column in template
+                                                                    >>>XLWINGS<<<
+'''
+
+#load workbook
+app = xw.App(visible=False)
+wb = xw.Book('KI_temp.xls') #keep this file empty!
+ws = wb.sheets['Projects']
+
+#update workbook at specified range
+ws.range('B11').options(index=False).value = file
+
+#close wb
+
+savePth = fd.askdirectory(initialdir='/',title='Select folder to save file to')
+
+KI_recordFile =  savePth + '/'  + managerName + '_' + date.today().strftime("%d%m%y") + '.xls'
+
+#wb save as and close
+wb.save(KI_recordFile)
+wb.close()
+app.quit()
